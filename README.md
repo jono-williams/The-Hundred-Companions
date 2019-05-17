@@ -1,5 +1,5 @@
 # The Hundred Companions
-[Website Here](https://www.thc-wow.com/)
+[Website](https://www.thc-wow.com/)
 
 ## Summary
 ---
@@ -16,7 +16,9 @@ This is a website I was requested to make by a friend, He owns a WoW community a
 + PHP
 
 ### New things I leant with this project
+---
 
 + Blizzard API
 
 #### Testimonial
+---
