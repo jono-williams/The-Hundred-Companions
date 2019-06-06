@@ -30,8 +30,8 @@ ADS-RIGHT,AFS-AD,DFP-AD,FBS-AD,LEADERBOARD-AD,[ad-id^="googlead"],[href*="//xml.
   <monkas style="font-weight:bold;">### Direct Message Commands (PM)<br><br>
   <hr>
   <hr>
-  # login &lt;email&gt; &lt;password&gt;</monkas><br>
-  Links your discord account with a THC account.<br><br>
+  # login &lt;email&gt; &lt;key&gt;</monkas><br>
+  Links your discord account with a THC account. You can get your key from the website.<br><br>
   <hr>
   <monkas style="font-weight:bold;"># help</monkas><br>
   Responds with an embed with a list of all commands (including info 
@@ -43,6 +43,12 @@ commands, not displayed here), and a link to this documentation.<br><br>
   <monkas style="font-weight:bold;"># attendance</monkas><br>
   If logged in, tells you how many events you have attended in the community since you joined, and how many you have missed.<br><br>
   <hr>
+  <monkas style="font-weight:bold;"># apply &lt;team&gt;</monkas><br>
+  Use to apply to a specific team within the community. Triggers a series of questions that, when all answered and confirmed, will be sent to a team's leader/s.<br><br>
+  <hr>
+  <monkas style="font-weight:bold;"># cancel</monkas><br>
+  This command only works while answering questions for an applicance. Using it will cancel it.<br><br>
+  <hr>
   <hr>
   <br>
   <monkas style="font-weight:bold;">### Discord Channel Commands</monkas><br><br>
@@ -53,9 +59,6 @@ commands, not displayed here), and a link to this documentation.<br><br>
   <hr>
   <monkas style="font-weight:bold;"># points</monkas><br>
   Tells you how many points you have in total, and how many are spendable.<br><br>
-  <hr>
-  <monkas style="font-weight:bold;"># events</monkas><br>
-  Displays a list of all upcoming events.<br><br>
   <hr>
   <monkas style="font-weight:bold;"># join &lt;event&gt;</monkas><br>
   Join an event by name. If you satisfy the requirements, you'll be counted in.<br><br>
@@ -74,6 +77,23 @@ appropiate discord channel.<br>
   <monkas style="font-weight:bold;"># cancelbuy</monkas><br>
   Cancels all non-completed transactions.<br>
   <hr>
-
-
+  <hr><br>
+  <monkas style="font-weight:bold;">### Leader Commands</monkas><br><br>
+  <hr>
+  <hr>
+  <monkas style="font-weight:bold;"># applicants &lt;team&gt;</monkas><br>
+  Responds with a list of all applicants, with detailed information of each.<br><br>
+  <hr>
+  <monkas style="font-weight:bold;"># accept &lt;team&gt; &lt;user_id&gt;</monkas><br>
+  Accept a specific user into the team. The user ID can be found out with the 'applicants' command.<br><br>
+  <hr>
+  <monkas style="font-weight:bold;"># reject &lt;team&gt; &lt;user_id&gt;</monkas><br>
+  Reject a specific user. The user ID can be found out with the 'applicants' command.<br><br>
+  <hr>
+  <monkas style="font-weight:bold;"># grant &lt;team&gt; &lt;@user&gt;</monkas><br>
+	Makes the mentioned user a member of the specified team, without needing them to apply.<br><br>
+	<hr>
+	<monkas style="font-weight:bold;"># revoke &lt;team&gt; &lt;@user&gt;</monkas><br>
+	Kicks the mentioned user from the specified team.<br><br>
+	<hr>
 </body></html>

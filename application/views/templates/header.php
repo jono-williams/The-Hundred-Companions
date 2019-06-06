@@ -76,11 +76,12 @@
 					</header>
 					<ul id="top_menu">
 						<li><a href="<?=base_url()?>">Home</a></li>
-						<li><a href="<?=base_url()?>welcome/activities">Activities</a></li>
 						<li><a href="<?=base_url()?>welcome/roster">Roster</a></li>
 						<?php if(@$this->session->userdata('user')->Id) { ?>
+							<li><a href="<?=base_url()?>welcome/activities">Activities</a></li>
 							<li><a href="<?=base_url()?>welcome/characters">Characters</a></li>
 							<li><a href="<?=base_url()?>welcome/leaderboard">Leaderboard</a></li>
+							<li><a href="<?=base_url()?>welcome/teams">Teams</a></li>
 						<?php } ?>
 					</ul>
 					<div id="main">
@@ -101,6 +102,7 @@
 													<td valign="top">
 														<div>
 															<input type="submit" name="login_submit" value="Log in!">
+															<a href="<?=base_url()?>auth/forgotpassword"><button type="button" class="nice_button" name="button">Change Password</button></a>
 														</div>
 													</td>
 												</tr>
@@ -111,12 +113,7 @@
 						<?php } else { ?>
 							<section class="body">
 								<?php @$main_character = $this->db->query("SELECT * FROM wow_characters WHERE user_id = {$this->session->userdata('user')->Id} AND main_character = 1")->row();
-											$characters = $this->db->query("SELECT * FROM wow_characters WHERE user_id = {$this->session->userdata('user')->Id}")->result();
-											$points = 0;
-											foreach ($characters as $key => $value) {
-												@$search = $value->name . '-' . addslashes(str_replace(' ', '', $value->realm));
-												$points = number_format($points, 0) + number_format($this->db->query("SELECT SUM(joined_events.points) as points FROM joined_events WHERE CONCAT(character_name, '-', REPLACE(character_realm, ' ', '')) = '{$search}'")->row()->points, 0);
-											}
+											$points = number_format($this->db->query("SELECT SUM(joined_events.points) as points FROM joined_events WHERE user_id = {$this->session->userdata('user')->Id}")->row()->points, 0);
 											$role = $this->db->query("SELECT * FROM rank WHERE Id = {$this->session->userdata('user')->rank_id}")->row();
 								?>
 								<?php if(@$main_character) { ?>
@@ -125,10 +122,12 @@
 										<?=$main_character->name?>-<?=$main_character->realm?><br>
 										<b>Points: </b><?=($points ? $points : '0')?><br>
 										<b>Role: </b><span style="color:<?=@$role->colour?>"><?=@$role->name?></span><br>
+										<b>Auth Key: </b><span><?=$this->session->userdata('user')->auth_key?></span><br>
 									</div>
 								<?php } ?>
 								<br><br><br>
 								<a href="<?=base_url()?>auth/signout"><button type="button" class="nice_button" name="button">Sign Out!</button></a>
+								<a href="<?=base_url()?>auth/forgotpassword"><button type="button" class="nice_button" name="button">Change Password</button></a>
 							</section>
 						<?php } ?>
 						</article>
@@ -148,6 +147,12 @@
 										<li><a href="<?=base_url()?>admin/articles"><img src="/assets/images/bullet.png">Article Management</a></li>
 										<li><a href="<?=base_url()?>admin/user_import"><img src="/assets/images/bullet.png">User Import</a></li>
 										<li><a href="<?=base_url()?>admin/streamers"><img src="/assets/images/bullet.png">Streamers</a></li>
+										<li><a href="<?=base_url()?>admin/fixUsers"><img src="/assets/images/bullet.png">Fix Character Matching</a></li>
+										<li><a href="<?=base_url()?>admin/manage_teams"><img src="/assets/images/bullet.png">Manage Teams</a></li>
+										<li><a href="<?=base_url()?>admin/manage_team"><img src="/assets/images/bullet.png">Manage Teams Members</a></li>
+										<li><a href="<?=base_url()?>admin/team_questions"><img src="/assets/images/bullet.png">Team Application Question</a></li>
+										<li><a href="<?=base_url()?>admin/team_app_answers"><img src="/assets/images/bullet.png">Team Applications</a></li>
+										<li><a href="<?=base_url()?>admin/manual_manage_teams"><img src="/assets/images/bullet.png">Manually Assign Teams</a></li>
 									</ul>
 								</section>
 							</article>

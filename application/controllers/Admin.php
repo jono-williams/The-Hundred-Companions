@@ -129,7 +129,6 @@ class Admin extends CI_Controller {
 						$imp['Timestamp'] = str_replace('AM', '', $imp['Timestamp']);
 					}
 					if(substr_count($imp['Timestamp'], ':') == 2) {
-						print_r($imp['Timestamp']);
 						$imp['Timestamp'] = DateTime::createFromFormat('d/m/Y H:i:s', trim($imp['Timestamp']))->format('y-m-d H:i:s');
 					} else {
 						$imp['Timestamp'] = DateTime::createFromFormat('d/m/Y H:i', trim($imp['Timestamp']))->format('y-m-d H:i:s');
@@ -146,14 +145,29 @@ class Admin extends CI_Controller {
 					}
 					$imp['MemberName'] = $imp['MemberName'];
 					$name = explode('-', $imp['MemberName']);
-					$pw[$key] = array(
-						'timestamp' => $imp['Timestamp'],
-						'points' => $imp['Points'],
-						'completed' => 1,
-						'eventId' => $aId,
-						'character_name' => $name[0],
-						'character_realm' => $name[1],
-					);
+					$characterFound = $this->db->query("SELECT * FROM wow_characters WHERE name = '{$name[0]}' AND realm = '{$this->db->escape_str($name[1])}'")->row();
+					if($characterFound) {
+						$pw[$key] = array(
+							'user_id' => $characterFound->user_id,
+							'timestamp' => $imp['Timestamp'],
+							'points' => $imp['Points'],
+							'completed' => 1,
+							'eventId' => $aId,
+							'character_name' => $name[0],
+							'character_realm' => $name[1],
+						);
+					} else {
+						$pw[$key] = array(
+							'user_id' => 0,
+							'timestamp' => $imp['Timestamp'],
+							'points' => $imp['Points'],
+							'completed' => 1,
+							'eventId' => $aId,
+							'character_name' => $name[0],
+							'character_realm' => $name[1],
+						);
+					}
+
 				}
 
 				$this->db->insert_batch('joined_events', $pw);
@@ -207,32 +221,6 @@ class Admin extends CI_Controller {
 			$this->db->truncate('roster');
 			@$result = $this->csvreader->parse_file($target_file);
 			if($result) {
-				$i = 0;
-				foreach ($result as $key => $value) {
-					foreach($value as $k => $v) {
-							$import[$i][$k] = $v;
-					}
-					$i++;
-				}
-
-				$member_rank = $this->db->query("SELECT * FROM rank WHERE name = 'Member'")->row()->Id;
-				$this->db->set('rank_id', 0);
-				$this->db->where('rank_id', $member_rank);
-				$this->db->update('users');
-				$characters = $this->db->query("SELECT wow_characters.*, users.Id, users.rank_id FROM users JOIN wow_characters ON wow_characters.user_id = users.Id AND wow_characters.main_character = 1 ORDER BY rank_id")->result();
-				foreach ($import as $key => $value) {
-					$name_found = array_search($value['name'], array_column($characters, 'name'));
-					if($name_found !== false) {
-						if($characters[$name_found]->realm == $value['realm']) {
-							@$member_rank = $this->db->query("SELECT * FROM rank WHERE name = '{$value["role"]}'")->row()->Id;
-							$this->db->set('rank_id', $member_rank);
-							$this->db->where('Id', $characters[$name_found]->Id);
-							$this->db->update('users');
-						}
-					}
-				}
-
-
 				$query = "LOAD DATA LOCAL INFILE '$target_file'
 									INTO TABLE roster
 									CHARACTER SET UTF8
@@ -254,12 +242,7 @@ class Admin extends CI_Controller {
 	public function usersPoints() {
 		$users = $this->db->query("SELECT * FROM users")->result();
 		foreach ($users as $key => $value) {
-			$characters = $this->db->query("SELECT * FROM wow_characters WHERE user_id = {$value->Id}")->result();
-			$points = 0;
-			foreach ($characters as $k => $value) {
-				@$search = $value->name . '-' . addslashes(str_replace(' ', '', $value->realm));
-				$points = number_format($points, 0) + number_format($this->db->query("SELECT SUM(joined_events.points) as points FROM joined_events WHERE CONCAT(character_name, '-', REPLACE(character_realm, ' ', '')) = '{$search}'")->row()->points, 0);
-			}
+			$points = number_format($this->db->query("SELECT SUM(joined_events.points) as points FROM joined_events WHERE user_id = {$value->Id}")->row()->points, 0);
 			@$users[$key]->points = $points;
 		}
 		$data['users'] = $users;
@@ -268,8 +251,95 @@ class Admin extends CI_Controller {
 
 	public function usersPointsCharacters($userId) {
 		$data['characters'] = $this->db->query("SELECT * FROM wow_characters JOIN roster ON roster.name = wow_characters.name AND REPLACE(roster.realm, ' ', '') = REPLACE(wow_characters.realm, ' ', '') WHERE wow_characters.user_id = {$userId}")->result();
-		$data['joined_events'] = $this->db->query("SELECT roster.name, roster.realm, joined_events.points, joined_events.timestamp, activities.name as aName FROM wow_characters JOIN roster ON roster.name = wow_characters.name JOIN joined_events ON roster.name = joined_events.character_name AND REPLACE(roster.realm, ' ', '') = REPLACE(wow_characters.realm, ' ', '') JOIN activities ON activities.Id = joined_events.eventId AND REPLACE(roster.realm, ' ', '') = REPLACE(wow_characters.realm, ' ', '') WHERE wow_characters.user_id = {$userId}")->result();
+		$data['joined_events'] = $this->db->query("SELECT joined_events.character_name as name, joined_events.character_realm as realm, joined_events.points, joined_events.timestamp, activities.name as aName FROM wow_characters JOIN roster ON roster.name = wow_characters.name JOIN joined_events ON roster.name = joined_events.character_name AND REPLACE(roster.realm, ' ', '') = REPLACE(wow_characters.realm, ' ', '') JOIN activities ON activities.Id = joined_events.eventId AND REPLACE(roster.realm, ' ', '') = REPLACE(wow_characters.realm, ' ', '') WHERE wow_characters.user_id = {$userId}")->result();
 		$this->load->template('userRoster', $data);
+	}
+
+	public function fixUsers() {
+		$data['users'] = $this->db->query("SELECT * FROM users")->result();
+		if(@$this->input->post('user_id') && @$this->input->post('name') && @$this->input->post('realm')) {
+			$this->db->query("UPDATE joined_events SET user_id = {$this->input->post('user_id')} WHERE character_name = '{$this->db->escape_str($this->input->post('name'))}' AND character_realm = '{$this->db->escape_str($this->input->post('realm'))}'");
+		}
+		$this->load->template('fixUsers', $data);
+	}
+
+	public function manage_team()
+	{
+		$data['teams'] = $this->db->query("SELECT * FROM teams")->result();
+
+		if(@$_POST['team']) {
+			$data['teamDetails'] = $this->db->query("SELECT team_members.Id, wow_characters.name as character_name, wow_characters.realm as character_realm, team_members.isLeader FROM team_members JOIN wow_characters ON wow_characters.user_id = team_members.user_id AND wow_characters.main_character = 1 WHERE team_members.team_id = {$_POST['team']}")->result();
+		}
+		$this->load->template('manage_teams', $data);
+	}
+
+	public function manage_teams()
+	{
+		$crud = new grocery_CRUD();
+		$crud->set_table('teams');
+		$crud->set_relation('role','discord_roles','name');
+		$crud->set_relation('leaderRole','discord_roles','name');
+		$this->load->template('crud', (array)$crud->render());
+	}
+
+	public function manual_manage_teams()
+	{
+		$crud = new grocery_CRUD();
+		$crud->set_table('team_members');
+		$crud->set_relation('team_id','teams','name');
+		$crud->set_relation('user_id','users','name');
+		$this->load->template('crud', (array)$crud->render());
+	}
+
+	public function team_questions()
+	{
+		$crud = new grocery_CRUD();
+		$crud->set_table('team_questions');
+		$crud->set_relation('team_id','teams','name');
+		$this->load->template('crud', (array)$crud->render());
+	}
+
+	public function team_app_answers()
+	{
+		$data['applications'] = $this->db->query("SELECT team_applicants.*, teams.name as tName FROM team_applicants JOIN teams ON team_applicants.team_id = teams.Id")->result();
+
+		if(@$_POST['application']) {
+			$data['search'] = explode(',', $_POST['application']);
+			$data['application_questions'] = $this->db->query("SELECT * FROM team_app_answers WHERE team_id = {$data['search'][1]} AND user_id = {$data['search'][2]}")->result();
+		}
+		$this->load->template('applications', $data);
+	}
+
+	public function declineApp($id) {
+		$details = $this->db->query("SELECT * FROM team_applicants WHERE Id = {$id}")->row();
+		$this->db->where('team_id', $details->team_id);
+		$this->db->where('user_id', $details->user_id);
+		$this->db->delete('team_app_answers');
+		$this->db->where('Id', $id);
+		$this->db->delete('team_applicants');
+		redirect('admin/team_app_answers');
+	}
+
+	public function acceptApp($id) {
+		$details = $this->db->query("SELECT * FROM team_applicants WHERE Id = {$id}")->row();
+		$import = array(
+			'team_id' => $details->team_id,
+			'user_id' => $details->user_id,
+			'isLeader' => 0,
+		);
+		$this->db->insert('team_members', $import);
+		$this->db->where('team_id', $details->team_id);
+		$this->db->where('user_id', $details->user_id);
+		$this->db->delete('team_app_answers');
+		$this->db->where('Id', $id);
+		$this->db->delete('team_applicants');
+		redirect('admin/team_app_answers');
+	}
+
+	public function teamRemoveMember($id) {
+		$this->db->where('Id', $id);
+		$this->db->delete('team_members');
+		redirect('admin/manage_team');
 	}
 
 }

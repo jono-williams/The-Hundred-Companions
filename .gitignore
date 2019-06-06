@@ -15,5 +15,7 @@ application/logs/*
 !application/logs/index.html
 !application/logs/.htaccess
 /vendor/
+uploads/*
+
 application/config/database.php
 application/controllers/Auth.php

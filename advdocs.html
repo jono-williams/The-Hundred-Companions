@@ -33,6 +33,12 @@ ADS-RIGHT,AFS-AD,DFP-AD,FBS-AD,LEADERBOARD-AD,[ad-id^="googlead"],[href*="//xml.
 	Changes the prefix of all commands in the bot to the specified one. This is the only admin command that may be used in a PM.<br>
 	Meant to prevent different bots' commands overlapping.<br><br>
 	<hr>
+	<monkas style="font-weight:bold;"># attendance &lt;event_name&gt;</monkas><br>
+	Shows who attended the event with the given name.<br><br>
+	<hr>
+	<monkas style="font-weight:bold;"># announce &lt;text&gt;</monkas><br>
+	Sends a message to all logged in users with the specified text.<br><br>
+	<hr>
 	<monkas style="font-weight:bold;"># setwelcome &lt;message_text&gt;</monkas><br>
 	Sets the given text as the content of the message to be sent to new companions. You will want to set this before setting the companion role, or all your new companions will receive a default message.<br><br>
 	<hr>
@@ -52,7 +58,7 @@ ADS-RIGHT,AFS-AD,DFP-AD,FBS-AD,LEADERBOARD-AD,[ad-id^="googlead"],[href*="//xml.
 	<monkas style="font-weight:bold;"># users</monkas><br>
 	Returns the number and percentage of users that have linked their discord account to their THC account on the server.<br><br>
 	<hr>
-	<monkas style="font-weight:bold;"># newevent &lt;name&gt; &lt;@host&gt; &lt;points&gt; &lt;description&gt; &lt;timestamp&gt; &lt;role_restriction&gt;</monkas><br>
+	<monkas style="font-weight:bold;"># newevent &lt;name&gt; &lt;@host&gt; &lt;points&gt; &lt;description&gt; &lt;timestamp&gt; &lt;team_restriction&gt;</monkas><br>
 	Creates a new event with the given parameters. Note that you can use " 
 to set write names or descriptions with spaces in them (like "A 
 description.").<br>
@@ -61,26 +67,10 @@ description.").<br>
 	<c style="color:#e60000;">&lt;points&gt;</c> The number of points the event awards. Must be an integer number.<br>
 	<c style="color:#e60000;">&lt;description&gt;</c> Extra information for the event. You can type in NONE for no description.<br>
 	<c style="color:#e60000;">&lt;timestamp&gt;</c> A date time of format "yyyy-MM-dd HH:mm:ss" that indicates when the event starts.<br>
-	<c style="color:#e60000;">&lt;role_restriction&gt;</c> Determines which roles can participate in the event, separated by ','. You can type in NONE to remove restrictions.<br>
+	<c style="color:#e60000;">&lt;team_restriction&gt;</c> Determines which teams can participate in the event, separated by ','. You can type in NONE to remove restrictions.<br>
 	<y style="color:#196619;">E.g. !newevent "An Event" @Gotama 10 NONE "2020-01-01 23:00:00" Role1,Role2</y><br><br>
 	<hr>
-	<monkas style="font-weight:bold;"># sync &lt;webrole&gt; &lt;@discord_role&gt;</monkas><br>
-	Tells the bot that the given web role is the same as the @mentioned 
-discord role. This will keep the web role and the discord role in sync.<br>
-	If the user has the web role, it will be assigned the discord role. If 
-the user has the discord role, but not the web role, it will get its 
-discord role revoked.<br><br>
-	<hr>
-	<monkas style="font-weight:bold;"># desync &lt;webrole&gt;</monkas><br>
-	Tells the bot to no longer sync this web role with whichever discord role it used to sync with.<br><br>
-	<hr>
-	<monkas style="font-weight:bold;"># grant &lt;role&gt; &lt;@user|@discordrole&gt;</monkas><br>
-	Grants the specified web role to the @mentioned user, or to all users that have the @mentioned discord role. Any web role name is valid.<br><br>
-	<hr>
-	<monkas style="font-weight:bold;"># revoke &lt;role&gt; &lt;@user&gt;</monkas><br>
-	Revokes the specified web role from the @mentioned user.<br><br>
-	<hr>
-	<monkas style="font-weight:bold;"># whois &lt;@user|webuser&gt; &lt;days&gt;</monkas><br>
+	<monkas style="font-weight:bold;"># whois &lt;@user|webuser&gt; (optional)&lt;days&gt;</monkas><br>
 	Returns information about the @mentioned user, or alternatively the user with the given username on the site. The &lt;days&gt; 
 parameter here is optional, and if given a valid integer as value will 
 return the attendance of the user in the last X days.<br><br>
@@ -92,6 +82,33 @@ return the attendance of the user in the last X days.<br><br>
 	<monkas style="font-weight:bold;"># deleteinfo &lt;command_name&gt;</monkas><br>
 	Gets rid of a custom info command.<br><br>
 	<hr>
+	<monkas style="font-weight:bold;"># createteam &lt;name&gt; &lt;@role&gt; &lt;@leaderrole&gt;</monkas><br>
+	Creates a new team with the given name, taking @role as a discord role to give to all member users and @leaderrole to give to all leaders.<br><br>
+	<hr>
+	<monkas style="font-weight:bold;"># deleteteam &lt;name&gt;</monkas><br>
+	Dismantles the specified team.<br><br>
+	<hr>
+	<monkas style="font-weight:bold;"># addquestion &lt;team&gt; &lt;question&gt;</monkas><br>
+	Adds a new question to be asked during applicances. Questions are ordered alphabetically, so you can prefix them with a number to determine when they should appear.<br><br>
+	<hr>
+	<monkas style="font-weight:bold;"># removequestion &lt;team&gt; &lt;question&gt;</monkas><br>
+	Removes a question.<br><br>
+	<hr>
+	<monkas style="font-weight:bold;"># seequestions &lt;team&gt;</monkas><br>
+	Shows you all current questions (besides character selection) that will be asked during an applicance, in the order that they appear.<br><br>
+	<hr>
+	<monkas style="font-weight:bold;"># grant &lt;team&gt; &lt;@user&gt;</monkas><br>
+	Makes the mentioned user a member of the specified team, without needing them to apply.<br><br>
+	<hr>
+	<monkas style="font-weight:bold;"># revoke &lt;team&gt; &lt;@user&gt;</monkas><br>
+	Kicks the mentioned user from the specified team.<br><br>
+	<hr>
+	<monkas style="font-weight:bold;"># grantlead &lt;team&gt; &lt;@user&gt;</monkas><br>
+	Makes the mentioned user a leader of the specified team. Must be a member in the first place.<br><br>
+	<hr>
+	<monkas style="font-weight:bold;"># revokelead &lt;team&gt; &lt;@user&gt;</monkas><br>
+	Revokes leadership status from a team member.<br><br>
+	<hr>
 	<monkas style="font-weight:bold;"># setupshop</monkas><br>
 	Tells the bot to register the channel this command is sent to as a shop
  channel. THIS CHANNEL WILL HAVE ALL OF ITS MESSAGES ERASED 
@@ -99,6 +116,9 @@ PERIODICALLY.<br>
 	Keep that last sentence in mind when setting a channel as shop. It 
 should be preferably a new channel, perhaps with no permission to send 
 messages to it by normal users.<br><br>
+	<hr>
+	<monkas style="font-weight:bold;"># setupevents</monkas><br>
+	Tells the bot to register the channel this command is sent to as an events announcement channel.<br><br>
 	<hr>
 	<monkas style="font-weight:bold;"># resyncshop</monkas><br>
 	If changes to the shop have been made without the use of discord 
@@ -125,17 +145,23 @@ on a transaction from the transactions command) as having been
 processed.<br>
 	It won't show up when using the transactions command anymore.<br><br>
 	<hr>
-	<monkas style="font-weight:bold;"># savesession</monkas><br>
-	Highly technical. Will save all of the bot's current data as a binary 
-file. If the bot's process is killed, when starting again it will 
-restore itself to the point of save.<br>
-	This command should be used before any technical bot restarts. The bot 
-will autosave sessions every 1 hour, so using this command manually 
-may not be necessary.<br><br>
+	<monkas style="font-weight:bold;"># addinvites &lt;...&gt;</monkas><br>
+	Everything that isn't a type and comes after 'addinvites' will be processed and added as an invite code.
+	Invite codes are expected to be in link form, like so: https://www.worldofwarcraft.com/invite/g7q4DvieXy?region=EU&faction=Horde<br>
+	A type is the number of uses an invite has. It can be 1, 10, 50, 100 or INF (for unlimited). If not specified, it will be 1.<br>
+	When a type is found, everything that comes after it will be of that type. If a new type is found, everything that comes after that one will be that of that new type, and so on.<br>
+	<y style="color:#196619;">E.g. !addinvites https://www.worldofwarcraft.com/invite/g7q4DvieXy?region=EU&faction=Horde https://www.worldofwarcraft.com/invite/g7q4DvieXy?region=EU&faction=Horde 10 https://www.worldofwarcraft.com/invite/g7q4DvieXy?region=EU&faction=Horde INF https://www.worldofwarcraft.com/invite/g7q4DvieXy?region=EU&faction=Horde https://www.worldofwarcraft.com/invite/g7q4DvieXy?region=EU&faction=Horde<br>
+	The first two links will be treated as one-use invites, the third link appears after '10' so it will be treated as a 10-use invite, and the last 2 appear after 'INF' so they will be treated as unlimited-use invites.</y><br><br>
 	<hr>
-	<monkas style="font-weight:bold;"># forgetsession</monkas><br>
-	Deletes any saved sessions. Use this command before a bot restart to start all configuration anew.<br>
+	<monkas style="font-weight:bold;"># seeinvites</monkas><br>
+	Responds with a list of all invites that haven't been sent to anyone yet.<br><br>
 	<hr>
-
-
+	<monkas style="font-weight:bold;"># clearinvites</monkas><br>
+	Clears all invite lists.<br><br>
+	<hr>
+	<monkas style="font-weight:bold;"># invite &lt;@user&gt; (optional)&lt;type&gt;</monkas><br>
+	Sends the mentioned discord user a PM with a community invite. By default, it uses up a one-use invite. You can change the type of the invite through the optional parameter.<br>
+	The type is essentially the number of uses of the invite. For unlimited-use invites, the type is INF.<br>
+	<y style="color:#196619;">E.g. !invite @Bogi 10</y><br><br>
+	<hr>
 </body></html>

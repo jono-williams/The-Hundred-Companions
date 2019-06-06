@@ -34,17 +34,32 @@ class Welcome extends CI_Controller {
 	}
 
 	public function activities() {
+		if(!@$this->session->userdata('user')->Id) {
+			redirect('auth/login');
+		}
+
+		if($this->session->userdata('user')->Id) {
+			$this->db->select("GROUP_CONCAT(teams.name) as groupped");
+			$this->db->from("team_members");
+			$this->db->join("teams", "teams.Id = team_members.team_id");
+			$this->db->where("user_id", $this->session->userdata('user')->Id);
+			$teams = $this->db->get()->row()->groupped;
+			if($teams) {
+				$teams = implode(',', array_unique(explode(',', $teams)));
+			}
+		}
+
 		$data['title'] = "Activities";
 		$this->db->select('activities.*, users.name as hostName, IF(activities.timestamp >= CURDATE(), 1, 0) as active');
 		$this->db->from('activities');
 		$this->db->join('users', 'activities.host_id = users.Id');
-		if(@$this->session->userdata('user')->Id) {
+		$this->db->where("(activities.certain_roles = '' OR FIND_IN_SET('{$teams}', activities.certain_roles))", false, false);
+
+		if($this->session->userdata('user')->Id) {
 			$this->db->select('joined_events.eventId as joined_events');
 			$this->db->join('joined_events', 'joined_events.eventId = activities.Id AND joined_events.user_id = '.$this->session->userdata('user')->Id.'', 'left');
 		}
-		if(@$this->session->userdata('role')->name != "Owner" && @$this->session->userdata('role')->name != "Moderator" && @$this->session->userdata('role')->name != "Admin") {
-			$this->db->where('activities.timestamp >= CURDATE()');
-		}
+
 		$this->db->order_by('activities.timestamp DESC');
 		$data['activities'] = $this->db->get()->result();
 		$this->load->template('activities/list', $data);
@@ -64,12 +79,13 @@ class Welcome extends CI_Controller {
 
 	public function join_event($eventId='') {
 		$userId = $this->session->userdata('user')->Id;
-		$main_character_id = $this->db->query("SELECT * FROM wow_characters WHERE user_id = {$userId} AND main_character = 1")->row()->Id;
+		$main_character_id = $this->db->query("SELECT * FROM wow_characters WHERE user_id = {$userId} AND main_character = 1")->row();
 		if($userId && $eventId) {
 			$import = array(
 				'user_id' => $userId,
 				'eventId' => $eventId,
-				'character_id' => $main_character_id,
+				'character_name' => $main_character_id->name,
+				'character_realm' => $main_character_id->realm,
 			);
 			$this->db->insert('joined_events', $import);
 			redirect('welcome/activities');
@@ -130,11 +146,7 @@ class Welcome extends CI_Controller {
 				$main_character = $this->db->query("SELECT * FROM wow_characters WHERE user_id = {$value->Id} LIMIT 1")->row();
 			}
 			if($main_character) {
-				$points = 0;
-				foreach ($characters as $k => $value) {
-					@$search = $value->name . '-' . addslashes(str_replace(' ', '', $value->realm));
-					$points = number_format($points, 0) + number_format($this->db->query("SELECT SUM(joined_events.points) as points FROM joined_events WHERE CONCAT(character_name, '-', REPLACE(character_realm, ' ', '')) = '{$search}'")->row()->points, 0);
-				}
+				$points = number_format($this->db->query("SELECT SUM(joined_events.points) as points FROM joined_events WHERE user_id = {$value->Id}")->row()->points, 0);
 				if($points) {
 					@$users[$key]->points = $points;
 					@$users[$key]->name = $main_character->name . "-" . str_replace(' ', '', $main_character->realm);
@@ -152,5 +164,46 @@ class Welcome extends CI_Controller {
 
 	  $data['users'] = $users;
 		$this->load->template('points2', $data);
+	}
+
+	public function teams() {
+		$data['teams'] = $this->db->query("SELECT * FROM teams")->result();
+		$this->load->template('teams', $data);
+	}
+
+	public function viewTeam($id) {
+		$data['team'] = $this->db->query("SELECT * FROM teams WHERE Id = {$id}")->row();
+		$data['team_members'] = $this->db->query("SELECT team_members.Id, wow_characters.name as character_name, wow_characters.realm as character_realm, team_members.isLeader FROM team_members JOIN wow_characters ON wow_characters.user_id = team_members.user_id AND wow_characters.main_character = 1 WHERE team_members.team_id = {$id}")->result();
+		$this->load->template('teamView', $data);
+	}
+
+	public function teamApply($id) {
+		$data['team'] = $this->db->query("SELECT * FROM teams WHERE Id = {$id}")->row();
+		$data['team_questions'] = $this->db->query("SELECT * FROM team_questions WHERE team_id = {$id}")->result();
+		$this->load->template('teamApply', $data);
+	}
+
+	public function teamAppSubmit($id) {
+		foreach ($this->input->post() as $key => $value) {
+			if($key && ($key != "Name" && $key != "Realm")) {
+				$import[] = array(
+					'question' => $key,
+					'answer' => $value,
+					'team_id' => $id,
+					'user_id' => (@$this->session->userdata('user')->Id ? $this->session->userdata('user')->Id : 0),
+				);
+			}
+		}
+
+		$import2 = array(
+			'team_id' => $id,
+			'user_id' => (@$this->session->userdata('user')->Id ? $this->session->userdata('user')->Id : 0),
+			'name' => $this->input->post("Name"),
+			'realm' => $this->input->post("Realm"),
+		);
+
+		$this->db->insert_batch('team_app_answers', $import);
+		$this->db->insert('team_applicants', $import2);
+		redirect('welcome/teams');
 	}
 }
