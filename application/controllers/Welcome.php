@@ -187,7 +187,7 @@ class Welcome extends CI_Controller {
 		foreach ($this->input->post() as $key => $value) {
 			if($key && ($key != "Name" && $key != "Realm")) {
 				$import[] = array(
-					'question' => $key,
+					'question' => str_replace('_', ' ', $key),
 					'answer' => $value,
 					'team_id' => $id,
 					'user_id' => (@$this->session->userdata('user')->Id ? $this->session->userdata('user')->Id : 0),
